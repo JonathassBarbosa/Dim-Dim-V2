@@ -1,4 +1,4 @@
-const CACHE = 'dimdim-v9';
+const CACHE = 'dimdim-v10';
 const ASSETS = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/mark.png', './icons/mark-success.png', './icons/mark-error.png'];
 
 self.addEventListener('install', (event) => {

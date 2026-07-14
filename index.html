@@ -14,8 +14,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script type="module">
-  import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/+esm";
-  window.WebLLM = webllm;
+  try{
+    const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+    window.WebLLM = webllm;
+    window.WebLLM_carregou = true;
+  }catch(e){
+    console.error('DimDim: não consegui carregar o WebLLM (motor de IA local). O app vai usar só a nuvem.', e);
+    window.WebLLM_carregou = false;
+  }
 </script>
 <style>
 :root{
@@ -703,7 +709,14 @@ function webgpuDisponivel(){
 async function garantirEngineLocal(onProgress){
   if(localEngineStatus === 'ready') return true;
   if(localEngineStatus === 'unavailable') return false;
-  if(!webgpuDisponivel() || !window.WebLLM){ localEngineStatus = 'unavailable'; return false; }
+  if(!webgpuDisponivel()){
+    console.warn('DimDim: este navegador/aparelho não suporta WebGPU. Usando a nuvem (Gemini).');
+    localEngineStatus = 'unavailable'; return false;
+  }
+  if(!window.WebLLM){
+    console.warn('DimDim: a biblioteca WebLLM não carregou (veja o erro acima, se houver). Usando a nuvem (Gemini).');
+    localEngineStatus = 'unavailable'; return false;
+  }
   try{
     localEngineStatus = 'loading';
     localEngine = await window.WebLLM.CreateMLCEngine(LOCAL_MODEL_ID, {
@@ -712,7 +725,7 @@ async function garantirEngineLocal(onProgress){
     localEngineStatus = 'ready';
     return true;
   }catch(e){
-    console.error('WebLLM não conseguiu carregar:', e);
+    console.error('DimDim: WebLLM carregou mas não conseguiu iniciar o modelo local:', e);
     localEngineStatus = 'unavailable';
     return false;
   }
