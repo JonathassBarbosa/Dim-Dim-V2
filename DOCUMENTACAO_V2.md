@@ -6,6 +6,12 @@ Versão refinada: identidade visual unificada em todas as telas, bot da IA com f
 
 ## 1. O que mudou na V2
 
+### Agente de IA híbrido (novo)
+- **Motor local (padrão)**: usa WebLLM + WebGPU pra rodar um modelo (Llama 3.2 3B) direto no aparelho da pessoa — sem internet, sem limite de uso, sem custo, e os dados financeiros nunca saem do dispositivo. Baixa ~2GB na primeira vez (fica em cache depois).
+- **Motor de nuvem (Gemini)**: usado automaticamente quando (a) o aparelho não suporta WebGPU, (b) o motor local falha por qualquer motivo, ou (c) a pergunta menciona algo que precisa de busca na internet (taxas de investimento, CDI, Selic, cotações, notícias).
+- Respostas do motor local vêm com uma etiqueta discreta "🖥️ processado no seu aparelho, sem internet" — transparência pro usuário saber qual motor respondeu.
+- A chave de Gemini já vem embutida, então o plano B funciona sem pedir nada ao usuário.
+
 ### Correções de identidade visual
 - **Bot da IA sem corte**: removido o recorte circular que cortava partes da logo no ícone flutuante e no cabeçalho do chat.
 - **Sombra falsa removida**: a logo original vinha com uma sombra desenhada dentro do próprio arquivo de imagem (não era CSS) — identificada e apagada nos três estados (normal, sucesso, erro).
@@ -138,7 +144,8 @@ Checklist rápido depois de hospedar:
 - [ ] O saldo aparece corretamente na tela Início (não fica em R$ 0,00 pra sempre)
 - [ ] O app muda de cor se você simular um saldo negativo (edite um valor de custo fixo pra testar)
 - [ ] Toca no botão flutuante da IA — o bot aparece inteiro, sem corte
-- [ ] Manda uma mensagem pro assistente e recebe resposta
+- [ ] Manda uma mensagem simples pro assistente (ex: "oi") — na primeira vez, deve aparecer "Baixando modelo local..." com porcentagem subindo, depois responder com a etiqueta "🖥️ processado no seu aparelho"
+- [ ] Pergunta algo sobre taxa de investimento (ex: "qual a taxa do CDI hoje?") — deve responder sem a etiqueta local (foi pro Gemini, com busca na internet)
 - [ ] Testa o microfone (ícone 🎙️) — funciona no Chrome; em navegadores sem suporte, o botão de microfone some sozinho (é esperado)
 - [ ] Instala na tela inicial do celular e reabre — deve abrir em tela cheia, sem barra de navegador
 - [ ] Testa em uma tela pequena (celular mais antigo/compacto) — nenhum campo deve cortar ou dar zoom sozinho ao tocar
@@ -148,6 +155,8 @@ Checklist rápido depois de hospedar:
 ## 6. Limitações conhecidas (por design, não são bugs)
 
 - **Ícone da tela inicial é estático.** Nenhuma plataforma (iOS, Android ou PWA) permite ícone animado na tela de início — isso é uma regra do sistema operacional. A animação acontece ao abrir o app (splash), não no ícone parado.
+- **Modelo local não funciona em todo aparelho.** Depende de WebGPU, que cobre uns 70-75% dos celulares hoje (iOS 26+ funciona; Android mais antigo ou navegadores desatualizados, não). Quando não funciona, o app cai pro Gemini sozinho, sem avisar nem travar — só não vai ter a etiqueta "processado no aparelho".
+- **Primeira mensagem pode demorar.** O modelo local baixa ~2GB na primeira vez que alguém usa o assistente naquele aparelho. Depois disso, fica em cache e é rápido. Em conexão de dados móveis lenta, isso pode incomodar — não tem como evitar, é o preço de ter IA sem limite e sem custo.
 - **Sem monitoramento automático em segundo plano.** O agente de IA só age quando o app está aberto. Ele não fica checando taxas de investimento ou te avisando sozinho com o app fechado — isso exigiria um servidor rodando 24h, que este projeto não tem.
 - **A chave de Gemini embutida é compartilhada por quem usar este código.** Pra uso pessoal (só você testando) isso é o esperado. Se decidir distribuir pra outras pessoas usarem, either troque pra elas colarem a própria chave (o campo em ⚙️ → Status da Conexão já existe pra isso), ou monitore o consumo da sua chave em aistudio.google.com pra não estourar o limite gratuito. Cada pessoa continua precisando da própria planilha, isso não muda.
 - **Modelos de IA mudam com o tempo.** O Google eventualmente aposenta modelos antigos (já aconteceu uma vez nesta conversa, do `gemini-2.5-flash` pro `gemini-3.5-flash`). Se o chat parar de responder com um erro citando o nome do modelo, é sinal de que precisa trocar a versão no código.
